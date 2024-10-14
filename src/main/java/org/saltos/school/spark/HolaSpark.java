@@ -1,5 +1,6 @@
 package org.saltos.school.spark;
 
+import org.apache.spark.api.java.JavaDoubleRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
@@ -27,7 +28,7 @@ public class HolaSpark {
         nombresEnSpark.foreach(nombre -> System.out.println(nombre));
         JavaRDD<String> nombresEnMayusculasRDD = nombresEnSpark.map(nombre -> nombre.toUpperCase());
         JavaRDD<String> nombresEnMayusculasRDD2 = nombresEnSpark.map(String::toUpperCase);
-        JavaRDD<String> nombresEnMayusculasRDD3 =nombresEnSpark.map(nombre -> {
+        JavaRDD<String> nombresEnMayusculasRDD3 = nombresEnSpark.map(nombre -> {
            String nombreEnMayusculas = nombre.toUpperCase();
            return nombreEnMayusculas;
         });
@@ -43,6 +44,24 @@ public class HolaSpark {
         numerosRDD.foreach(numero -> System.out.println("numero: " + numero));
         long numeroDeItems = numerosRDD.count();
         System.out.println("El numero de items es: " + numeroDeItems);
+
+        List<String> nombresEnJava2 = nombresEnSpark.collect();
+        System.out.println("Collect de Java");
+        nombresEnJava2.forEach(nombre -> System.out.println(nombre));
+
+        JavaRDD<Double> numerosDoblesRDD = numerosRDD.map(numero -> numero * 2.0);
+        JavaDoubleRDD numerosDoubleRDD = numerosRDD.mapToDouble(numero -> numero * 2.0);
+
+        //numerosDoblesRDD.sum();
+        double total = numerosDoubleRDD.sum();
+        //numerosDoblesRDD.max();
+        double maximo = numerosDoubleRDD.max();
+
+        System.out.println("El total es: " + total);
+        System.out.println("El máximo es: " + maximo);
+
+        jsc.close();
+        spark.close();
 
     }
 
