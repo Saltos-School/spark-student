@@ -18,7 +18,7 @@ public class HolaSpark {
         SparkSession spark = SparkSession
                 .builder()
                 .appName("Hola Spark")
-                .config("spark.master", "local")
+                .config("spark.master", "local[*]")
                 .getOrCreate();
         JavaSparkContext jsc = JavaSparkContext.fromSparkContext(spark.sparkContext());
         jsc.setLogLevel("WARN");
