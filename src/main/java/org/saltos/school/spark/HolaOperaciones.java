@@ -37,6 +37,31 @@ public class HolaOperaciones {
         System.out.println("Por dos y por tres:");
         porDosyPorTres.collect().forEach(System.out::println);
 
+        // reduce (acción)
+        double suma = numerosEnSpark.reduce((x, y) -> x + y);
+        System.out.println("La suma es: " + suma);
+
+        // map con reduce
+        double sumaCuadrados = numerosEnSpark.map(n -> Math.pow(n, 2)).reduce((x, y) -> x + y);
+        double sumaCuadrados2 = numerosEnSpark.map(n -> Math.pow(n, 2)).reduce(Double::sum);
+        double sumaCuadrados3 = numerosEnSpark.mapToDouble(n -> Math.pow(n, 2)).sum();
+        System.out.println("Suma cuadrados: " + sumaCuadrados);
+        System.out.println("Suma cuadrados2: " + sumaCuadrados2);
+        System.out.println("Suma cuadrados3: " + sumaCuadrados3);
+
+        // fold (acción)
+        double suma2 = numerosEnSpark.fold(0.0, (x, y) -> x + y);
+        System.out.println("La suma es: " + suma2);
+
+        //numerosEnSpark.reduce((x, y) -> x + ", " + y);
+        //numerosEnSpark.fold("Hola", (x, y) -> x + y);
+
+        // aggregate (acción)
+        String resultado = numerosEnSpark.aggregate("A", (x, y) -> x + " " + y, (s1, s2) -> s1 + "B" + s2);
+        System.out.println("Resultado: " + resultado);
+
+        double suma3 = numerosEnSpark.aggregate(0.0, (x, y) -> x + y, (s1, s2) -> s1 + s2);
+        System.out.println("La suma es: " + suma3);
 
         jsc.close();
         spark.close();
