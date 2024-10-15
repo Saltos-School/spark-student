@@ -1,5 +1,6 @@
 package org.saltos.school.spark;
 
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
@@ -65,6 +66,22 @@ public class HolaOperaciones {
 
         double sumaCuadrados4 = numerosEnSpark.aggregate(0.0, (x, y) -> x * x + y * y, (s1, s2) -> s1 + s2);
         System.out.println("Suma cuadrados4: " + sumaCuadrados4);
+
+        // zip (transformación)
+        JavaRDD<String> letras = jsc.parallelize(Arrays.asList("a", "b", "c"));
+        JavaRDD<Integer> enteros = jsc.parallelize(Arrays.asList(1, 2, 3));
+        JavaPairRDD<String, Integer> letrasConNumeros = letras.zip(enteros);
+        letrasConNumeros.collect().forEach(tupla -> {
+            System.out.println("Letra con numero: " + tupla._1 + " " + tupla._2);
+        });
+
+        letras.zipWithIndex().collect().forEach(tupla -> {
+            System.out.println("Letra con índice: " + tupla._1 + " " + tupla._2);
+        });
+
+        letras.zipWithUniqueId().collect().forEach(tupla -> {
+            System.out.println("Letra con índice: " + tupla._1 + " " + tupla._2);
+        });
 
         jsc.close();
         spark.close();
