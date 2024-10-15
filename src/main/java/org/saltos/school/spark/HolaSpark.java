@@ -22,6 +22,23 @@ public class HolaSpark {
                 .getOrCreate();
         JavaSparkContext jsc = JavaSparkContext.fromSparkContext(spark.sparkContext());
         jsc.setLogLevel("WARN");
+
+        List<String> numerosComoCadenasEnJava = Arrays.asList("1", "5", "-20", "40");
+
+        jsc.parallelize(numerosComoCadenasEnJava).mapToDouble(n -> {
+            try {
+                return Integer.parseInt(n);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }).sum();
+
+        jsc.parallelize(numerosComoCadenasEnJava).mapToDouble(n -> Double.parseDouble(n)).sum();
+
+        JavaRDD<String> numeroConCadenasEnSpark = jsc.parallelize(numerosComoCadenasEnJava);
+        JavaDoubleRDD numoersDoublesEnSpark = numeroConCadenasEnSpark.mapToDouble(n -> Double.parseDouble(n));
+        double total3 = numoersDoublesEnSpark.sum();
+
         List<String> nombresEnJava = Arrays.asList("Carlos", "Pepe", "Anna", "Paul");
         JavaRDD<String> nombresEnSpark = jsc.parallelize(nombresEnJava);
         System.out.println("Nombres en Spark original");
@@ -36,10 +53,14 @@ public class HolaSpark {
         System.out.println("Nombres en mayusculas");
         nombresEnMayusculasRDD.foreach(nombre -> System.out.println("[" + nombre + "]"));
         System.out.println("Nombres en Spark original");
+        //nombresEnSpark.foreach(System.out::println);
         nombresEnSpark.foreach(nombre -> System.out.println(nombre));
 
         JavaRDD<Integer> numerosRDD = nombresEnSpark.map(nombre -> nombre.length());
         JavaRDD<Integer> numerosRDD2 = nombresEnSpark.map(String::length);
+
+        double total2 = numerosRDD.mapToDouble(numero -> numero).sum();
+        System.out.println("Total suma de numeros es: " + total2);
 
         numerosRDD.foreach(numero -> System.out.println("numero: " + numero));
         long numeroDeItems = numerosRDD.count();
