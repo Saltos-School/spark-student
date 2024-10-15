@@ -64,8 +64,14 @@ public class HolaArchivos {
         peopleDF.printSchema();
         peopleDF.show();
 
+        Dataset<Row> peopleTXT3 = spark.createDataFrame(peopleTXT.javaRDD(), esquema);
+        peopleTXT3.printSchema();
+        peopleTXT3.show();
+
         Dataset<Row> peopleJson = spark.read().json("src/main/resources/people.json");
         Dataset<Row> peopleJson2 = spark.read().format("json").load("src/main/resources/people.json");
+
+        JavaRDD<Row> peopleJsonRDD = peopleJson2.javaRDD();
 
         peopleJson.printSchema();
         peopleJson.show();
