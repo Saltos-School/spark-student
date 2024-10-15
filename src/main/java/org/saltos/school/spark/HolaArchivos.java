@@ -11,6 +11,7 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class HolaArchivos {
 
@@ -83,6 +84,19 @@ public class HolaArchivos {
 
         peopleJson.printSchema();
         peopleJson.show();
+
+        JavaRDD<String> pageRankRDD = jsc.textFile("src/main/resources/page_rank_sample01.txt");
+        AtomicLong numeroDeLinea = new AtomicLong(1);
+        JavaRDD<String> pageRankConNumeroDeLineaRDD = pageRankRDD.map(linea -> {
+            return linea + " " + (numeroDeLinea.getAndIncrement());
+        });
+        System.out.println("Archivo de page rank: ");
+        pageRankConNumeroDeLineaRDD.collect().forEach(System.out::println);
+
+        System.out.println("Archivo de page rank con índice: ");
+        pageRankRDD.zipWithIndex().collect().forEach(lineaConNumero -> {
+            System.out.println(lineaConNumero._1 + " " + lineaConNumero._2);
+        });
 
         jsc.close();
         spark.close();
