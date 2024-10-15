@@ -18,8 +18,8 @@ public class HolaOperaciones {
         JavaSparkContext jsc = JavaSparkContext.fromSparkContext(spark.sparkContext());
         jsc.setLogLevel("WARN");
 
-        List<Double> numeros = Arrays.asList(1.0, 2.0, 3.0);
-        JavaRDD<Double> numerosEnSpark = jsc.parallelize(numeros, 2);
+        List<Double> numeros = Arrays.asList(1.0, 2.0, 3.0, -5.0, 20.0, 10.0);
+        JavaRDD<Double> numerosEnSpark = jsc.parallelize(numeros, 4);
         System.out.println("Numeros en spark:");
         numerosEnSpark.collect().forEach(System.out::println);
 
@@ -57,11 +57,14 @@ public class HolaOperaciones {
         //numerosEnSpark.fold("Hola", (x, y) -> x + y);
 
         // aggregate (acción)
-        String resultado = numerosEnSpark.aggregate("A", (x, y) -> x + " " + y, (s1, s2) -> s1 + "B" + s2);
+        String resultado = numerosEnSpark.aggregate("A", (x, y) -> x + "C" + y, (s1, s2) -> s1 + "B" + s2);
         System.out.println("Resultado: " + resultado);
 
         double suma3 = numerosEnSpark.aggregate(0.0, (x, y) -> x + y, (s1, s2) -> s1 + s2);
         System.out.println("La suma es: " + suma3);
+
+        double sumaCuadrados4 = numerosEnSpark.aggregate(0.0, (x, y) -> x * x + y * y, (s1, s2) -> s1 + s2);
+        System.out.println("Suma cuadrados4: " + sumaCuadrados4);
 
         jsc.close();
         spark.close();
