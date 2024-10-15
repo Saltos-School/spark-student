@@ -64,6 +64,12 @@ public class HolaArchivos {
         peopleDF.printSchema();
         peopleDF.show();
 
+        Dataset<Row> peopleJson = spark.read().json("src/main/resources/people.json");
+        Dataset<Row> peopleJson2 = spark.read().format("json").load("src/main/resources/people.json");
+
+        peopleJson.printSchema();
+        peopleJson.show();
+
         jsc.close();
         spark.close();
     }
