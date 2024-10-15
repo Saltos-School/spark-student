@@ -64,7 +64,15 @@ public class HolaArchivos {
         peopleDF.printSchema();
         peopleDF.show();
 
-        Dataset<Row> peopleTXT3 = spark.createDataFrame(peopleTXT.javaRDD(), esquema);
+        JavaRDD<Row> peopleTXTRDD = peopleTXT.javaRDD();
+        JavaRDD<Row> peopleTXTRDD2 = peopleTXTRDD.map(fila -> {
+            String nombre = fila.getString(0).trim();
+            String edad = fila.getString(1).trim();
+            Integer edadComoEntero = Integer.parseInt(edad);
+            Row filaNueva = RowFactory.create(nombre, edadComoEntero);
+            return filaNueva;
+        });
+        Dataset<Row> peopleTXT3 = spark.createDataFrame(peopleTXTRDD2, esquema);
         peopleTXT3.printSchema();
         peopleTXT3.show();
 
