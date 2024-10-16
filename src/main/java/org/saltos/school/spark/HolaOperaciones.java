@@ -83,6 +83,24 @@ public class HolaOperaciones {
             System.out.println("Letra con índice: " + tupla._1 + " " + tupla._2);
         });
 
+        JavaRDD<Double> impares = numerosEnSpark.filter(n -> n % 2 == 1);
+        JavaRDD<Double> pares = numerosEnSpark.filter(n -> n % 2 == 0);
+        JavaRDD<Double> negativos = numerosEnSpark.filter(n -> n < 0);
+        JavaRDD<Double> positivos = numerosEnSpark.filter(n -> n >= 0);
+
+
+        System.out.println("impares:");
+        impares.collect().forEach(System.out::println);
+
+        System.out.println("pares:");
+        pares.collect().forEach(System.out::println);
+
+        System.out.println("negativos:");
+        negativos.collect().forEach(System.out::println);
+
+        System.out.println("positivos:");
+        positivos.collect().forEach(System.out::println);
+
         jsc.close();
         spark.close();
     }
