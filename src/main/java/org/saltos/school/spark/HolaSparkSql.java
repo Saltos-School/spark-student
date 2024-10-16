@@ -21,11 +21,14 @@ public class HolaSparkSql {
         employeesDF.show();
 
         employeesDF.createOrReplaceTempView("empleado");
-
         Dataset<Row> empleadosMejorPagadosDF = spark.sql("SELECT name FROM empleado WHERE salary > 3500");
-
         empleadosMejorPagadosDF.printSchema();
         empleadosMejorPagadosDF.show();
+
+        employeesDF.createOrReplaceGlobalTempView("empleado");
+        Dataset<Row> empleadosMejorPagadosDF2 = spark.sql("SELECT name FROM global_temp.empleado WHERE salary > 3500");
+        empleadosMejorPagadosDF2.printSchema();
+        empleadosMejorPagadosDF2.show();
 
         jsc.close();
         spark.close();
