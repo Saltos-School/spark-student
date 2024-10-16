@@ -4,6 +4,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.storage.StorageLevel;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,21 +21,21 @@ public class HolaOperaciones {
         jsc.setLogLevel("WARN");
 
         List<Double> numeros = Arrays.asList(1.0, 2.0, 3.0, -5.0, 20.0, 10.0);
-        JavaRDD<Double> numerosEnSpark = jsc.parallelize(numeros, 4);
+        JavaRDD<Double> numerosEnSpark = jsc.parallelize(numeros, 4).persist(StorageLevel.MEMORY_AND_DISK());
         System.out.println("Numeros en spark:");
         numerosEnSpark.collect().forEach(System.out::println);
 
         // map (tranformación)
-        JavaRDD<Double> incrementoUnoPuntoCinco = numerosEnSpark.map(n -> n + 1.5);
+        JavaRDD<Double> incrementoUnoPuntoCinco = numerosEnSpark.map(n -> n + 1.5).persist(StorageLevel.DISK_ONLY());
         System.out.println("Incremento uno punto cinco:");
         incrementoUnoPuntoCinco.collect().forEach(System.out::println);
 
         // flatMap (transformación)
-        JavaRDD<List<Double>> porDosyPorTresLista = numerosEnSpark.map(n -> Arrays.asList(n * 2, n * 3));
+        JavaRDD<List<Double>> porDosyPorTresLista = numerosEnSpark.map(n -> Arrays.asList(n * 2, n * 3)).cache();
         System.out.println("Por dos y por tres lista:");
         porDosyPorTresLista.collect().forEach(System.out::println);
 
-        JavaRDD<Double> porDosyPorTres = numerosEnSpark.flatMap(n -> Arrays.asList(n * 2, n * 3).iterator());
+        JavaRDD<Double> porDosyPorTres = numerosEnSpark.flatMap(n -> Arrays.asList(n * 2, n * 3).iterator()).persist(StorageLevel.MEMORY_ONLY());
         System.out.println("Por dos y por tres:");
         porDosyPorTres.collect().forEach(System.out::println);
 
@@ -64,7 +65,7 @@ public class HolaOperaciones {
         double suma3 = numerosEnSpark.aggregate(0.0, (x, y) -> x + y, (s1, s2) -> s1 + s2);
         System.out.println("La suma es: " + suma3);
 
-        double sumaCuadrados4 = numerosEnSpark.aggregate(0.0, (x, y) -> x * x + y * y, (s1, s2) -> s1 + s2);
+        double sumaCuadrados4 = numerosEnSpark.aggregate(0.0, (acc, n) -> acc + n * n, (s1, s2) -> s1 + s2);
         System.out.println("Suma cuadrados4: " + sumaCuadrados4);
 
         // zip (transformación)
@@ -83,11 +84,11 @@ public class HolaOperaciones {
             System.out.println("Letra con índice: " + tupla._1 + " " + tupla._2);
         });
 
+        // filter (transformación)
         JavaRDD<Double> impares = numerosEnSpark.filter(n -> n % 2 == 1);
         JavaRDD<Double> pares = numerosEnSpark.filter(n -> n % 2 == 0);
         JavaRDD<Double> negativos = numerosEnSpark.filter(n -> n < 0);
         JavaRDD<Double> positivos = numerosEnSpark.filter(n -> n >= 0);
-
 
         System.out.println("impares:");
         impares.collect().forEach(System.out::println);
