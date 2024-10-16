@@ -31,7 +31,7 @@ public class HolaDataset {
         employeesDF.filter("salary > 3500").show();
 
         System.out.println("Empleados con salario mayor a 3500:");
-        employeesDF.filter(col("salary").geq(3500)).show();
+        employeesDF.filter(col("salary").gt(3500)).show();
 
         Encoder<EmpleadoBean> encoderEmpleadoBean = Encoders.bean(EmpleadoBean.class);
         Dataset<EmpleadoBean> employeesDS = employeesDF.as(encoderEmpleadoBean);
