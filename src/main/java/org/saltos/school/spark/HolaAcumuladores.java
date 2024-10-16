@@ -27,6 +27,7 @@ public class HolaAcumuladores {
         });
 
         System.out.println("El contador es: " + contador.value());
+        System.out.println("El conteo es: " + datos.count());
 
         jsc.close();
         spark.close();
