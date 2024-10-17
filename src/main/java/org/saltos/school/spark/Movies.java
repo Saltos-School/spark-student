@@ -36,7 +36,7 @@ public class Movies {
         usersDF.printSchema();
         usersDF.show();
 
-        Long userId = 5L;
+        Long userId = 1L;
 
         calcularTop10(ratingsDF, moviesDF, linksDF, userId);
 
@@ -44,7 +44,7 @@ public class Movies {
         spark.close();
     }
 
-    private static void calcularTop10(Dataset<Row> ratingsDF, Dataset<Row> moviesDF, Dataset<Row> linksDF, Long userId) {
+    private static Dataset<Row> calcularTop10(Dataset<Row> ratingsDF, Dataset<Row> moviesDF, Dataset<Row> linksDF, Long userId) {
         Dataset<Row> ratingsDelUsuarioDF = ratingsDF.filter("userId = " + userId);
         ratingsDelUsuarioDF.printSchema();
         ratingsDelUsuarioDF.show();
@@ -73,6 +73,10 @@ public class Movies {
         );
         imdbTop10DF.printSchema();
         imdbTop10DF.show();
+
+        Dataset<Row> resultadoDF = imdbTop10DF.select("rating", "title", "imdb_link");
+
+        return resultadoDF;
 
     }
 
