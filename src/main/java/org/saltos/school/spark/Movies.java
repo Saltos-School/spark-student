@@ -4,6 +4,9 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 
 public class Movies {
 
@@ -24,9 +27,15 @@ public class Movies {
     }
 
     private static Dataset<Row> getMoviesDF(SparkSession spark) {
+        StructType esquema = DataTypes.createStructType(new StructField[]{
+                DataTypes.createStructField("movieId", DataTypes.LongType, false),
+                DataTypes.createStructField("title", DataTypes.StringType, false),
+                DataTypes.createStructField("genres", DataTypes.StringType, false),
+        });
         return spark
                 .read()
                 .option("header", "true")
+                .schema(esquema)
                 .csv("src/main/resources/ml-latest-small/movies.csv");
     }
 
