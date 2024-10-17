@@ -27,8 +27,8 @@ public class Movies {
         ratingsDF.show();
 
         Dataset<Row> linksDF = getLinksDF(spark);
-        ratingsDF.printSchema();
-        ratingsDF.show();
+        linksDF.printSchema();
+        linksDF.show();
 
         jsc.close();
         spark.close();
@@ -37,8 +37,8 @@ public class Movies {
     private static Dataset<Row> getLinksDF(SparkSession spark) {
         StructType esquema = DataTypes.createStructType(new StructField[]{
                 DataTypes.createStructField("movieId", DataTypes.LongType, false),
-                DataTypes.createStructField("imdbId", DataTypes.LongType, false),
-                DataTypes.createStructField("tmdbId", DataTypes.LongType, false),
+                DataTypes.createStructField("imdbId", DataTypes.StringType, false),
+                DataTypes.createStructField("tmdbId", DataTypes.StringType, false),
         });
         Dataset<Row> linksDF = spark
                 .read()
