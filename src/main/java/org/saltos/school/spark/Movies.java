@@ -42,6 +42,8 @@ public class Movies {
         top10DF.printSchema();
         top10DF.show(false);
 
+        top10DF.write().mode(SaveMode.Overwrite).json("src/main/resources/top10/user-" + userId);
+
         jsc.close();
         spark.close();
     }
@@ -74,7 +76,7 @@ public class Movies {
                 )
         ).withColumn("movielens_link",
                 concat(
-                        lit("ttps://movielens.org/movies/"),
+                        lit("https://movielens.org/movies/"),
                         col("movieId")
                 )
         ).withColumn("themoviedb_link",
