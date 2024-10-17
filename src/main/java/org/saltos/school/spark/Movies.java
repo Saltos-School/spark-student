@@ -7,6 +7,7 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.storage.StorageLevel;
 
 import static org.apache.spark.sql.functions.*;
 
@@ -20,29 +21,35 @@ public class Movies {
         JavaSparkContext jsc = JavaSparkContext.fromSparkContext(spark.sparkContext());
         jsc.setLogLevel("WARN");
 
-        Dataset<Row> moviesDF = getMoviesDF(spark);
+        Dataset<Row> moviesDF = getMoviesDF(spark).cache();
         moviesDF.printSchema();
         moviesDF.show();
 
-        Dataset<Row> ratingsDF = getRatingsDF(spark).persist();
+        Dataset<Row> ratingsDF = getRatingsDF(spark).persist(StorageLevel.MEMORY_AND_DISK());
         ratingsDF.printSchema();
         ratingsDF.show();
 
-        Dataset<Row> linksDF = getLinksDF(spark);
+        Dataset<Row> linksDF = getLinksDF(spark).persist();
         linksDF.printSchema();
         linksDF.show();
 
-        Dataset<Row> usersDF = ratingsDF.select("userId").distinct();
+        Dataset<Row> usersDF = ratingsDF.select("userId").distinct().persist();
         usersDF.printSchema();
         usersDF.show();
 
-        Long userId = 1L;
+        usersDF.limit(5).javaRDD().collect().forEach(user -> {
 
-        Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId);
-        top10DF.printSchema();
-        top10DF.show(false);
+            Long userId = user.getLong(0);
 
-        top10DF.write().mode(SaveMode.Overwrite).json("src/main/resources/top10/user-" + userId);
+            Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId);
+            top10DF.printSchema();
+            top10DF.show(false);
+
+            top10DF.write().mode(SaveMode.Overwrite).json("src/main/resources/top10/user-" + userId);
+            top10DF.write().mode(SaveMode.Overwrite).parquet("src/main/resources/top10parquet/user-" + userId);
+            top10DF.write().mode(SaveMode.Overwrite).orc("src/main/resources/top10orc/user-" + userId);
+
+        });
 
         jsc.close();
         spark.close();
