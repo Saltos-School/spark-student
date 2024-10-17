@@ -26,8 +26,26 @@ public class Movies {
         ratingsDF.printSchema();
         ratingsDF.show();
 
+        Dataset<Row> linksDF = getLinksDF(spark);
+        ratingsDF.printSchema();
+        ratingsDF.show();
+
         jsc.close();
         spark.close();
+    }
+
+    private static Dataset<Row> getLinksDF(SparkSession spark) {
+        StructType esquema = DataTypes.createStructType(new StructField[]{
+                DataTypes.createStructField("movieId", DataTypes.LongType, false),
+                DataTypes.createStructField("imdbId", DataTypes.LongType, false),
+                DataTypes.createStructField("tmdbId", DataTypes.LongType, false),
+        });
+        Dataset<Row> linksDF = spark
+                .read()
+                .option("header", "true")
+                .schema(esquema)
+                .csv("src/main/resources/ml-latest-small/links.csv");
+        return linksDF;
     }
 
     private static Dataset<Row> getRatingsDF(SparkSession spark) {
