@@ -65,6 +65,15 @@ public class Movies {
         linksTop10DF.printSchema();
         linksTop10DF.show();
 
+        Dataset<Row> imdbTop10DF = linksTop10DF.withColumn("imdb_link",
+                concat(
+                    lit("https://www.imdb.com/title/tt"),
+                    col("imdbid")
+                )
+        );
+        imdbTop10DF.printSchema();
+        imdbTop10DF.show();
+
     }
 
     private static Dataset<Row> getLinksDF(SparkSession spark) {
