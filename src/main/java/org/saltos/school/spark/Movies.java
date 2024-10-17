@@ -40,7 +40,7 @@ public class Movies {
 
         Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId);
         top10DF.printSchema();
-        top10DF.show();
+        top10DF.show(false);
 
         jsc.close();
         spark.close();
@@ -72,11 +72,21 @@ public class Movies {
                     lit("https://www.imdb.com/title/tt"),
                     col("imdbid")
                 )
+        ).withColumn("movielens_link",
+                concat(
+                        lit("ttps://movielens.org/movies/"),
+                        col("movieId")
+                )
+        ).withColumn("themoviedb_link",
+                concat(
+                        lit("https://www.themoviedb.org/movie/"),
+                        col("tmdbid")
+                )
         );
         imdbTop10DF.printSchema();
         imdbTop10DF.show();
 
-        Dataset<Row> resultadoDF = imdbTop10DF.select("rating", "title", "imdb_link");
+        Dataset<Row> resultadoDF = imdbTop10DF.select("rating", "title", "imdb_link", "movielens_link", "themoviedb_link");
 
         return resultadoDF;
 
