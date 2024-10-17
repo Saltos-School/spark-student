@@ -22,8 +22,27 @@ public class Movies {
         moviesDF.printSchema();
         moviesDF.show();
 
+        Dataset<Row> ratingsDF = getRatingsDF(spark);
+        ratingsDF.printSchema();
+        ratingsDF.show();
+
         jsc.close();
         spark.close();
+    }
+
+    private static Dataset<Row> getRatingsDF(SparkSession spark) {
+        StructType esquema = DataTypes.createStructType(new StructField[]{
+                DataTypes.createStructField("userId", DataTypes.LongType, false),
+                DataTypes.createStructField("movieId", DataTypes.LongType, false),
+                DataTypes.createStructField("rating", DataTypes.DoubleType, false),
+                DataTypes.createStructField("timestamp", DataTypes.LongType, false)
+        });
+        Dataset<Row> ratingsDF = spark
+                .read()
+                .option("header", "true")
+                .schema(esquema)
+                .csv("src/main/resources/ml-latest-small/ratings.csv");
+        return ratingsDF;
     }
 
     private static Dataset<Row> getMoviesDF(SparkSession spark) {
