@@ -1,9 +1,9 @@
 package org.saltos.school.spark;
 
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.api.java.function.MapFunction;
+import org.apache.spark.sql.*;
+import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -30,13 +30,28 @@ public class Movies {
         StructType esquema = DataTypes.createStructType(new StructField[]{
                 DataTypes.createStructField("movieId", DataTypes.LongType, false),
                 DataTypes.createStructField("title", DataTypes.StringType, false),
-                DataTypes.createStructField("genres", DataTypes.StringType, false),
+                DataTypes.createStructField("genres", DataTypes.StringType, false)
         });
-        return spark
+        Dataset<Row> moviesDF = spark
                 .read()
                 .option("header", "true")
                 .schema(esquema)
                 .csv("src/main/resources/ml-latest-small/movies.csv");
+        StructType esquema2 = DataTypes.createStructType(new StructField[]{
+                DataTypes.createStructField("movieId", DataTypes.LongType, false),
+                DataTypes.createStructField("title", DataTypes.StringType, false),
+                DataTypes.createStructField("genres", DataTypes.createArrayType(DataTypes.StringType), false)
+        });
+        Encoder<Row> encoder2 = RowEncoder.apply(esquema2);
+        Dataset<Row> moviesDF2 = moviesDF.map((MapFunction<Row, Row>)  fila -> {
+            Long movieId = fila.getLong(0);
+            String title = fila.getString(1);
+            String genres = fila.getString(2);
+            String[] genres2 = genres.split("\\|");
+            Row fila2 = RowFactory.create(movieId, title, genres2);
+            return fila2;
+        }, encoder2);
+        return moviesDF2;
     }
 
 }
