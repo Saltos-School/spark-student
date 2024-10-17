@@ -24,7 +24,7 @@ public class Movies {
         moviesDF.printSchema();
         moviesDF.show();
 
-        Dataset<Row> ratingsDF = getRatingsDF(spark);
+        Dataset<Row> ratingsDF = getRatingsDF(spark).persist();
         ratingsDF.printSchema();
         ratingsDF.show();
 
@@ -38,13 +38,13 @@ public class Movies {
 
         Long userId = 5L;
 
-        calcularTop10(ratingsDF, userId);
+        calcularTop10(ratingsDF, moviesDF, linksDF, userId);
 
         jsc.close();
         spark.close();
     }
 
-    private static void calcularTop10(Dataset<Row> ratingsDF, Long userId) {
+    private static void calcularTop10(Dataset<Row> ratingsDF, Dataset<Row> moviesDF, Dataset<Row> linksDF, Long userId) {
         Dataset<Row> ratingsDelUsuarioDF = ratingsDF.filter("userId = " + userId);
         ratingsDelUsuarioDF.printSchema();
         ratingsDelUsuarioDF.show();
@@ -56,6 +56,15 @@ public class Movies {
         Dataset<Row> usuarioTop10DF = ratingsDelUsuarioOrdenadoDF.limit(10);
         usuarioTop10DF.printSchema();
         usuarioTop10DF.show();
+
+        Dataset<Row> moviesTop10DF = usuarioTop10DF.join(moviesDF, "movieId");
+        moviesTop10DF.printSchema();
+        moviesTop10DF.show();
+
+        Dataset<Row> linksTop10DF = moviesTop10DF.join(linksDF, "movieId");
+        linksTop10DF.printSchema();
+        linksTop10DF.show();
+
     }
 
     private static Dataset<Row> getLinksDF(SparkSession spark) {
