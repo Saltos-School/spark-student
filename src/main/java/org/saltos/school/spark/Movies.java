@@ -8,6 +8,8 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
+import static org.apache.spark.sql.functions.*;
+
 public class Movies {
 
     public static void main(String[] args) {
@@ -29,6 +31,24 @@ public class Movies {
         Dataset<Row> linksDF = getLinksDF(spark);
         linksDF.printSchema();
         linksDF.show();
+
+        Dataset<Row> usersDF = ratingsDF.select("userId").distinct();
+        usersDF.printSchema();
+        usersDF.show();
+
+        Long userId = 5L;
+
+        Dataset<Row> ratingsDelUsuarioDF = ratingsDF.filter("userId = " + userId);
+        ratingsDelUsuarioDF.printSchema();
+        ratingsDelUsuarioDF.show();
+
+        Dataset<Row> ratingsDelUsuarioOrdenadoDF = ratingsDelUsuarioDF.sort(desc("rating"));
+        ratingsDelUsuarioOrdenadoDF.printSchema();
+        ratingsDelUsuarioOrdenadoDF.show();
+
+        Dataset<Row> usuarioTop10DF = ratingsDelUsuarioOrdenadoDF.limit(10);
+        usuarioTop10DF.printSchema();
+        usuarioTop10DF.show();
 
         jsc.close();
         spark.close();
