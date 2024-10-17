@@ -38,7 +38,9 @@ public class Movies {
 
         Long userId = 1L;
 
-        calcularTop10(ratingsDF, moviesDF, linksDF, userId);
+        Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId);
+        top10DF.printSchema();
+        top10DF.show();
 
         jsc.close();
         spark.close();
