@@ -25,6 +25,8 @@ public class Movies {
         JavaSparkContext jsc = JavaSparkContext.fromSparkContext(spark.sparkContext());
         jsc.setLogLevel("WARN");
 
+        spark.logError(() -> "Ejemplo de traza");
+
         Dataset<Row> moviesDF = getMoviesDF(spark, isProduction).cache();
         traza(moviesDF, isProduction);
 
@@ -139,7 +141,7 @@ public class Movies {
 
     private static String getFile(String name, boolean isProduction) {
         if (isProduction) {
-            return "s3://saltos-school-movies/ml-latest/" + name;
+            return "s3://saltos-spark-movies/ml-latest/" + name;
         } else {
             return "src/main/resources/ml-latest-small/" + name;
         }
@@ -161,7 +163,7 @@ public class Movies {
                 DataTypes.createStructField("title", DataTypes.StringType, false),
                 DataTypes.createStructField("genres", DataTypes.createArrayType(DataTypes.StringType), false)
         });
-        Encoder<Row> encoder2 = RowEncoder.apply(esquema2);
+        Encoder<Row> encoder2 = RowEncoder.encoderFor(esquema2);
         Dataset<Row> moviesDF2 = moviesDF.map((MapFunction<Row, Row>)  fila -> {
             Long movieId = fila.getLong(0);
             String title = fila.getString(1);
