@@ -37,17 +37,23 @@ public class Movies {
         Dataset<Row> usersDF = ratingsDF.select("userId").distinct().persist();
         traza(usersDF, isProduction);
 
-        usersDF.limit(5).javaRDD().collect().forEach(user -> {
+        Dataset<Row> usersSeleccionadosDF = isProduction ? usersDF : usersDF.limit(5);
+
+        usersSeleccionadosDF.javaRDD().collect().forEach(user -> {
 
             Long userId = user.getLong(0);
 
             Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId, isProduction);
-            top10DF.printSchema();
-            top10DF.show(false);
+            if (!isProduction) {
+                top10DF.printSchema();
+                top10DF.show(false);
+            }
 
-            top10DF.write().mode(SaveMode.Overwrite).json("src/main/resources/top10/user-" + userId);
-            top10DF.write().mode(SaveMode.Overwrite).parquet("src/main/resources/top10parquet/user-" + userId);
-            top10DF.write().mode(SaveMode.Overwrite).orc("src/main/resources/top10orc/user-" + userId);
+            if (isProduction) {
+                top10DF.write().mode(SaveMode.Overwrite).parquet(getFile("top10parquet/user-" + userId, isProduction));
+            } else {
+                top10DF.write().mode(SaveMode.Overwrite).json(getFile("top10/user-" + userId, isProduction));
+            }
 
         });
 
@@ -112,7 +118,7 @@ public class Movies {
                 .read()
                 .option("header", "true")
                 .schema(esquema)
-                .csv("src/main/resources/ml-latest-small/links.csv");
+                .csv(getFile("links.csv", isProduction));
         return linksDF;
     }
 
@@ -127,8 +133,16 @@ public class Movies {
                 .read()
                 .option("header", "true")
                 .schema(esquema)
-                .csv("src/main/resources/ml-latest-small/ratings.csv");
+                .csv(getFile("ratings.csv", isProduction));
         return ratingsDF;
+    }
+
+    private static String getFile(String name, boolean isProduction) {
+        if (isProduction) {
+            return "s3://saltos-school-movies/ml-latest/" + name;
+        } else {
+            return "src/main/resources/ml-latest-small/" + name;
+        }
     }
 
     private static Dataset<Row> getMoviesDF(SparkSession spark, boolean isProduction) {
@@ -141,7 +155,7 @@ public class Movies {
                 .read()
                 .option("header", "true")
                 .schema(esquema)
-                .csv("src/main/resources/ml-latest-small/movies.csv");
+                .csv(getFile("movies.csv", isProduction));
         StructType esquema2 = DataTypes.createStructType(new StructField[]{
                 DataTypes.createStructField("movieId", DataTypes.LongType, false),
                 DataTypes.createStructField("title", DataTypes.StringType, false),
