@@ -14,6 +14,10 @@ import static org.apache.spark.sql.functions.*;
 public class Movies {
 
     public static void main(String[] args) {
+
+        String env = System.getProperty("movies.env", "production");
+        boolean isProduction = env.equals("production");
+
         SparkSession spark = SparkSession
                 .builder()
                 .appName(Movies.class.getSimpleName())
@@ -21,27 +25,23 @@ public class Movies {
         JavaSparkContext jsc = JavaSparkContext.fromSparkContext(spark.sparkContext());
         jsc.setLogLevel("WARN");
 
-        Dataset<Row> moviesDF = getMoviesDF(spark).cache();
-        moviesDF.printSchema();
-        moviesDF.show();
+        Dataset<Row> moviesDF = getMoviesDF(spark, isProduction).cache();
+        traza(moviesDF, isProduction);
 
-        Dataset<Row> ratingsDF = getRatingsDF(spark).persist(StorageLevel.MEMORY_AND_DISK());
-        ratingsDF.printSchema();
-        ratingsDF.show();
+        Dataset<Row> ratingsDF = getRatingsDF(spark, isProduction).persist(StorageLevel.MEMORY_AND_DISK());
+        traza(ratingsDF, isProduction);
 
-        Dataset<Row> linksDF = getLinksDF(spark).persist();
-        linksDF.printSchema();
-        linksDF.show();
+        Dataset<Row> linksDF = getLinksDF(spark, isProduction).persist();
+        traza(linksDF, isProduction);
 
         Dataset<Row> usersDF = ratingsDF.select("userId").distinct().persist();
-        usersDF.printSchema();
-        usersDF.show();
+        traza(usersDF, isProduction);
 
         usersDF.limit(5).javaRDD().collect().forEach(user -> {
 
             Long userId = user.getLong(0);
 
-            Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId);
+            Dataset<Row> top10DF = calcularTop10(ratingsDF, moviesDF, linksDF, userId, isProduction);
             top10DF.printSchema();
             top10DF.show(false);
 
@@ -55,26 +55,28 @@ public class Movies {
         spark.close();
     }
 
-    private static Dataset<Row> calcularTop10(Dataset<Row> ratingsDF, Dataset<Row> moviesDF, Dataset<Row> linksDF, Long userId) {
+    private static void traza(Dataset<Row> df, boolean isProduction) {
+        if (!isProduction) {
+            df.printSchema();
+            df.show();
+        }
+    }
+
+    private static Dataset<Row> calcularTop10(Dataset<Row> ratingsDF, Dataset<Row> moviesDF, Dataset<Row> linksDF, Long userId, boolean isProduction) {
         Dataset<Row> ratingsDelUsuarioDF = ratingsDF.filter("userId = " + userId);
-        ratingsDelUsuarioDF.printSchema();
-        ratingsDelUsuarioDF.show();
+        traza(ratingsDelUsuarioDF, isProduction);
 
         Dataset<Row> ratingsDelUsuarioOrdenadoDF = ratingsDelUsuarioDF.sort(desc("rating"));
-        ratingsDelUsuarioOrdenadoDF.printSchema();
-        ratingsDelUsuarioOrdenadoDF.show();
+        traza(ratingsDelUsuarioOrdenadoDF, isProduction);
 
         Dataset<Row> usuarioTop10DF = ratingsDelUsuarioOrdenadoDF.limit(10);
-        usuarioTop10DF.printSchema();
-        usuarioTop10DF.show();
+        traza(usuarioTop10DF, isProduction);
 
         Dataset<Row> moviesTop10DF = usuarioTop10DF.join(moviesDF, "movieId");
-        moviesTop10DF.printSchema();
-        moviesTop10DF.show();
+        traza(moviesTop10DF, isProduction);
 
         Dataset<Row> linksTop10DF = moviesTop10DF.join(linksDF, "movieId");
-        linksTop10DF.printSchema();
-        linksTop10DF.show();
+        traza(linksTop10DF, isProduction);
 
         Dataset<Row> imdbTop10DF = linksTop10DF.withColumn("imdb_link",
                 concat(
@@ -92,8 +94,7 @@ public class Movies {
                         col("tmdbid")
                 )
         );
-        imdbTop10DF.printSchema();
-        imdbTop10DF.show();
+        traza(imdbTop10DF, isProduction);
 
         Dataset<Row> resultadoDF = imdbTop10DF.select("rating", "title", "imdb_link", "movielens_link", "themoviedb_link");
 
@@ -101,7 +102,7 @@ public class Movies {
 
     }
 
-    private static Dataset<Row> getLinksDF(SparkSession spark) {
+    private static Dataset<Row> getLinksDF(SparkSession spark, boolean isProduction) {
         StructType esquema = DataTypes.createStructType(new StructField[]{
                 DataTypes.createStructField("movieId", DataTypes.LongType, false),
                 DataTypes.createStructField("imdbId", DataTypes.StringType, false),
@@ -115,7 +116,7 @@ public class Movies {
         return linksDF;
     }
 
-    private static Dataset<Row> getRatingsDF(SparkSession spark) {
+    private static Dataset<Row> getRatingsDF(SparkSession spark, boolean isProduction) {
         StructType esquema = DataTypes.createStructType(new StructField[]{
                 DataTypes.createStructField("userId", DataTypes.LongType, false),
                 DataTypes.createStructField("movieId", DataTypes.LongType, false),
@@ -130,7 +131,7 @@ public class Movies {
         return ratingsDF;
     }
 
-    private static Dataset<Row> getMoviesDF(SparkSession spark) {
+    private static Dataset<Row> getMoviesDF(SparkSession spark, boolean isProduction) {
         StructType esquema = DataTypes.createStructType(new StructField[]{
                 DataTypes.createStructField("movieId", DataTypes.LongType, false),
                 DataTypes.createStructField("title", DataTypes.StringType, false),
