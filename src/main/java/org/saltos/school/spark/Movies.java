@@ -50,7 +50,7 @@ public class Movies {
             }
 
             if (isProduction) {
-                top10DF.write().mode(SaveMode.Overwrite).parquet(getFile("top10parquet/user-" + userId, isProduction));
+                top10DF.write().mode(SaveMode.Overwrite).parquet(getFile("paul/top10/user-" + userId, isProduction));
             } else {
                 top10DF.write().mode(SaveMode.Overwrite).json(getFile("top10/user-" + userId, isProduction));
             }
